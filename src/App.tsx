@@ -33,10 +33,10 @@ export function App() {
   const [currentView, setCurrentView] = useState<AppView>(() => {
     const hash = window.location.hash.toLowerCase();
     if (hash.includes('dashboard')) return 'OFFICER_DASHBOARD';
-    return 'VERIFY_PHONE';
+    if (hash.includes('verify-phone')) return 'VERIFY_PHONE';
+    return 'REPORT_FORM';
   });
   const [verifiedUser, setVerifiedUser] = useState<UserProfile | null>(null);
-  const [isNewUser, setIsNewUser] = useState<boolean>(false);
   const [isStatusCheckOpen, setIsStatusCheckOpen] = useState(false);
 
   // Modal States for Officer Dashboard
@@ -73,36 +73,28 @@ export function App() {
     });
   }, []);
 
-  // Sync hash routing and enforce access restrictions
+  // Sync hash routing
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.toLowerCase();
       if (hash.includes('dashboard')) {
         setCurrentView('OFFICER_DASHBOARD');
-      } else if (hash.includes('report')) {
-        // Enforce restriction: must have verified phone
-        if (!verifiedUser) {
-          setCurrentView('VERIFY_PHONE');
-          window.location.hash = '#/verify-phone';
-          showToast('กรุณาระบุและตรวจสอบเบอร์โทรศัพท์ก่อน', 'ต้องยืนยันเบอร์โทรศัพท์เพื่อเข้าถึงหน้าแบบฟอร์มแจ้งปัญหา', 'info');
-        } else {
-          setCurrentView('REPORT_FORM');
-        }
-      } else {
+      } else if (hash.includes('verify-phone')) {
         setCurrentView('VERIFY_PHONE');
+      } else {
+        setCurrentView('REPORT_FORM');
       }
     };
 
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [verifiedUser, showToast]);
+  }, []);
 
   const unreadEmailCount = emails.filter(e => !e.isRead).length;
 
-  // Phone Verified Callback
+  // Phone Verified Callback from Standalone Screen
   const handlePhoneVerified = (user: UserProfile, isNew: boolean) => {
     setVerifiedUser(user);
-    setIsNewUser(isNew);
     setCurrentView('REPORT_FORM');
     window.location.hash = '#/report';
     showToast(
@@ -227,15 +219,10 @@ export function App() {
         />
       )}
 
-      {/* VIEW 2: Main Issue Reporting Page (Access restricted until phone verified) */}
-      {currentView === 'REPORT_FORM' && verifiedUser && (
+      {/* VIEW 2: Complete Issue Reporting Page (หน้าแจ้งปัญหาการใช้งาน) */}
+      {currentView === 'REPORT_FORM' && (
         <PublicReportPage
-          user={verifiedUser}
-          isNewUser={isNewUser}
-          onBackToVerification={() => {
-            setCurrentView('VERIFY_PHONE');
-            window.location.hash = '#/verify-phone';
-          }}
+          initialUser={verifiedUser}
           onNavigateStatusCheck={() => setIsStatusCheckOpen(true)}
           onNavigateStaff={() => {
             setCurrentView('OFFICER_DASHBOARD');
@@ -269,25 +256,14 @@ export function App() {
             unreadEmailCount={unreadEmailCount}
             onOpenEmails={() => setIsEmailDrawerOpen(true)}
             onOpenNewTicket={() => {
-              // If phone is verified, open modal; if not, go to verification
-              if (!verifiedUser) {
-                setCurrentView('VERIFY_PHONE');
-                window.location.hash = '#/verify-phone';
-                showToast('กรุณาระบุและตรวจสอบเบอร์โทรศัพท์ผู้แจ้งก่อน', 'ระบบจะนำไปยังหน้าจอตรวจสอบเบอร์โทรศัพท์', 'info');
-              } else {
-                setIsNewTicketOpen(true);
-              }
+              setCurrentView('REPORT_FORM');
+              window.location.hash = '#/report';
             }}
             onOpenReportExport={() => setIsReportExportOpen(true)}
             onResetData={handleResetData}
             onNavigateCitizen={() => {
-              if (verifiedUser) {
-                setCurrentView('REPORT_FORM');
-                window.location.hash = '#/report';
-              } else {
-                setCurrentView('VERIFY_PHONE');
-                window.location.hash = '#/verify-phone';
-              }
+              setCurrentView('REPORT_FORM');
+              window.location.hash = '#/report';
             }}
           />
 
