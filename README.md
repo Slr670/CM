@@ -1,32 +1,77 @@
-# React + TypeScript + Vite
+# ระบบรับแจ้งซ่อม CM (Corrective Maintenance System) — กทม. x Forth
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+ระบบเว็บแอปพลิเคชันบริหารจัดการและติดตามงานแจ้งซ่อมบำรุงตามสั่ง (Corrective Maintenance - CM) พัฒนาตามกระบวนการทำงานจริง (Workflow) ระหว่าง **กรุงเทพมหานคร (กทม.)** และ **บริษัท ฟอร์ท คอร์ปอเรชั่น จำกัด (มหาชน) (Forth)**
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## แผนผังขั้นตอนการทำงาน (Workflow Diagram)
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```
+[กทม] ──> [แจ้งในระบบ] ──> [อีเมลแจ้งเตือน] ──> [Forth รับงาน] ──> [Forth อัพเดทสถานะ] ──> [Forth ยืนยันการแก้ไขเสร็จ]
+                │                                                                                     │
+                ▼                                                                                     ▼
+      [ดึง report เคสได้]                                                                    [อีเมลส่งไปยัง กทม]
+                                                                                                      │
+                                                                                                      ▼
+                                [Forth ส่ง report] <───────────── [กทม ปิดงาน] <───────────────────────┘
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+### รายละเอียดแต่ละขั้นตอนในระบบ
+
+1. **กทม แจ้งในระบบ (Report Ticket)**
+   - เจ้าหน้าที่ กทม. บันทึกเปิดเคสแจ้งซ่อม: หัวข้อปัญหา, หมวดหมู่อุปกรณ์ (CCTV, ไฟจราจร, Smart Pole, VMS, ไฟเบอร์), รหัสทรัพย์สิน, พิกัด GPS, สถานที่, แนบภาพถ่ายหน้างาน และกำหนดระดับความเร่งด่วนตาม SLA
+   - **ดึง report เคสได้:** มีปุ่มส่งออกรายงาน Data Grid กรองตามสถานะ/วันที่/หมวดหมู่ และ Export เป็นไฟล์ Excel/CSV หรือพิมพ์เอกสารสรุปได้ทันที
+2. **อีเมลแจ้งเตือน (Email to Contractor)**
+   - ระบบส่งอีเมลแจ้งเตือนอัตโนมัติไปยังทีมช่าง Forth ทันทีที่มีการเปิดเคสใหม่ พร้อมรายละเอียดความเร่งด่วนและ SLA
+3. **Forth รับงาน (Acknowledge & Assign)**
+   - ทีมงาน Forth กดรับงาน มอบหมายชื่อช่างผู้รับผิดชอบ, เบอร์ติดต่อ, ทีมงาน และกำหนดเป้าหมายเวลาแล้วเสร็จตาม SLA
+4. **Forth อัพเดทสถานะ (Update Status & Work Logs)**
+   - ช่าง Forth บันทึกความคืบหน้าระหว่างปฏิบัติงาน (เดินทางถึงหน้างาน, วิเคราะห์จุดเสีย, รอเบิกอะไหล่, ซ่อมแซม) พร้อมแนบรูปถ่ายหน้างาน
+5. **Forth ยืนยันการแก้ไขเสร็จ (Confirm Resolution)**
+   - Forth สรุปผลการซ่อมแซม, สาเหตุที่แท้จริง (Root Cause), วิธีการแก้ไข (Action Taken), บันทึกรายการอะไหล่ที่เปลี่ยน (Spare Parts), รูปถ่ายเปรียบเทียบ ก่อนแก้ไข (Before) vs หลังแก้ไข (After) และลงลายมือชื่อช่าง
+6. **อีเมลส่งไปยัง กทม (Email to BMA Inspector)**
+   - ระบบส่งอีเมลแจ้งเตือนอัตโนมัติไปยังเจ้าหน้าที่ กทม. ผู้แจ้ง เพื่อให้เข้าตรวจรับงาน
+7. **กทม ปิดงาน (Inspection & Sign-off)**
+   - เจ้าหน้าที่ กทม. ตรวจสอบผลงาน, ประเมินคะแนนความพึงพอใจ (1-5 ดาว), บันทึกข้อเสนอแนะ และเซ็นชื่อดิจิทัลอนุมัติปิดงาน
+8. **Forth ส่ง report (Submit Official CM Service Report)**
+   - Forth ออกเลขที่เอกสารทางการ และส่งมอบใบรับรองและรายงานผลการปฏิบัติงานซ่อมบำรุงตามสัญญา (CM Service Report) พร้อมฟังก์ชันสั่งพิมพ์หรือบันทึกเป็น PDF สวยงามระดับราชการ
+
+---
+
+## คุณสมบัติเด่นของระบบ (Key Features)
+
+- **Role Switcher**: สลับบทบาทได้ทันทีระหว่าง `กทม. (ผู้แจ้ง/ตรวจรับ)`, `Forth (ผู้รับเหมา)` และ `Admin (ผู้ดูแลระบบ)`
+- **Email Simulator**: กล่องข้อความจำลองอีเมลแจ้งเตือนอัตโนมัติทั้ง 2 จังหวะ พร้อม HTML Email Preview สวยงาม
+- **Digital Signature**: แคนวาสลงลายมือชื่อดิจิทัลด้วยเมาส์หรือระบบสัมผัส สำหรับช่าง Forth และผู้ตรวจรับ กทม.
+- **Official Print Layout**: ใบรายงานผลการซ่อม CM Service Report สวยงาม รองรับการพิมพ์และบันทึก PDF ผ่านเบราว์เซอร์
+- **Excel/CSV Export**: รองรับภาษาไทยสมบูรณ์ด้วย UTF-8 BOM
+
+---
+
+## การติดตั้งและการใช้งาน (Getting Started)
+
+### ความต้องการของระบบ
+- Node.js 18 ขึ้นไป
+- npm 9 ขึ้นไป
+
+### คำสั่งเริ่มต้นใช้งาน
+```bash
+# 1. ติดตั้ง Dependencies
+npm install
+
+# 2. รันโหมด Development
+npm run dev
+
+# 3. รันตรวจสอบโค้ด (Lint)
+npm run lint
+
+# 4. คอมไพล์และบิลด์สำหรับ Production
+npm run build
+```
+
+---
+
+## หมายเหตุและข้อมูลเวอร์ชัน (Version Management)
+
+- **Authoritative Version Source**: `src/version.ts` (v1.0.0)
+- **UI Policy**: ใช้ Scalable SVG Icons (Lucide Icons) โดยไม่มี Unicode Emoji ในเนื้อหา UI ตามมาตรฐานสากล
