@@ -19,6 +19,7 @@ interface NavbarProps {
   onOpenNewTicket: () => void;
   onOpenReportExport: () => void;
   onResetData: () => void;
+  onNavigateCitizen?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -29,6 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenNewTicket,
   onOpenReportExport,
   onResetData,
+  onNavigateCitizen,
 }) => {
   return (
     <header className="bg-slate-900 text-white sticky top-0 z-30 shadow-md border-b border-slate-800">
@@ -138,6 +140,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <RotateCcw className="w-4 h-4" />
             </button>
+
+            {/* Switch to Citizen Portal */}
+            {onNavigateCitizen && (
+              <button
+                type="button"
+                onClick={onNavigateCitizen}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold bg-cyan-950/60 hover:bg-cyan-900/80 text-cyan-300 border border-cyan-800/60 rounded-lg transition"
+                title="สลับไปยังหน้าจอแจ้งปัญหาสำหรับประชาชน / เจ้าหน้าที่ทั่วไป"
+              >
+                <span>หน้าแจ้งปัญหา (ผู้แจ้ง)</span>
+              </button>
+            )}
 
             {/* Create Ticket Button (Primary action for BMA/Admin) */}
             <button

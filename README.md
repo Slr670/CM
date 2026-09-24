@@ -40,6 +40,7 @@
 
 ## คุณสมบัติเด่นของระบบ (Key Features)
 
+- **Phone Verification Entry Step (ขั้นตอนตรวจสอบเบอร์โทรศัพท์เริ่มต้น)**: หน้าจอคัดกรองและตรวจสอบหมายเลขโทรศัพท์ 10 หลัก (ธีม Dark Navy Blue พร้อมเอฟเฟกต์ Glow/Grid สวยงาม) ดึงข้อมูลผู้แจ้งอัตโนมัติหากมีประวัติในระบบ หรือให้กรอกข้อมูลเพื่อสร้างโปรไฟล์ผู้แจ้งใหม่ก่อนเข้าสู่แบบฟอร์มแจ้งปัญหา
 - **Role Switcher**: สลับบทบาทได้ทันทีระหว่าง `กทม. (ผู้แจ้ง/ตรวจรับ)`, `Forth (ผู้รับเหมา)` และ `Admin (ผู้ดูแลระบบ)`
 - **Email Simulator**: กล่องข้อความจำลองอีเมลแจ้งเตือนอัตโนมัติทั้ง 2 จังหวะ พร้อม HTML Email Preview สวยงาม
 - **Digital Signature**: แคนวาสลงลายมือชื่อดิจิทัลด้วยเมาส์หรือระบบสัมผัส สำหรับช่าง Forth และผู้ตรวจรับ กทม.
@@ -73,5 +74,5 @@ npm run build
 
 ## หมายเหตุและข้อมูลเวอร์ชัน (Version Management)
 
-- **Authoritative Version Source**: `src/version.ts` (v1.0.0)
-- **UI Policy**: ใช้ Scalable SVG Icons (Lucide Icons) โดยไม่มี Unicode Emoji ในเนื้อหา UI ตามมาตรฐานสากล
+- **Authoritative Version Source**: `src/version.ts` (v1.1.0)
+- **UI Policy**: ใช้ Scalable SVG Icons (Lucide Icons และ Garuda Emblem SVG) โดยไม่มี Unicode Emoji ในเนื้อหา UI ตามมาตรฐานสากล
