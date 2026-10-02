@@ -12,7 +12,6 @@ import { TicketDetailModal } from './components/TicketDetailModal';
 import { ServiceReportView } from './components/ServiceReportView';
 import { CaseReportExportModal } from './components/CaseReportExportModal';
 import { EmailSimulatorDrawer } from './components/EmailSimulatorDrawer';
-import { PhoneVerificationScreen } from './components/PhoneVerificationScreen';
 import { PublicReportPage } from './components/PublicReportPage';
 import { StatusCheckModal } from './components/StatusCheckModal';
 import { TicketService } from './services/ticketService';
@@ -21,7 +20,7 @@ import { Ticket, UserRole, TicketStatus, EmailNotification } from './types/ticke
 import { APP_VERSION, APP_NAME, APP_BUILD_DATE } from './version';
 import { CheckCircle2, Info, Building2, Wrench } from 'lucide-react';
 
-export type AppView = 'VERIFY_PHONE' | 'REPORT_FORM' | 'OFFICER_DASHBOARD';
+export type AppView = 'REPORT_FORM' | 'OFFICER_DASHBOARD';
 
 export function App() {
   const [tickets, setTickets] = useState<Ticket[]>(() => TicketService.getAllTickets());
@@ -29,11 +28,10 @@ export function App() {
   const [currentRole, setCurrentRole] = useState<UserRole>('BMA');
   const [activeStatusFilter, setActiveStatusFilter] = useState<TicketStatus | 'ALL'>('ALL');
 
-  // Phone Verification & Flow State
+  // Routing & Flow State
   const [currentView, setCurrentView] = useState<AppView>(() => {
     const hash = window.location.hash.toLowerCase();
     if (hash.includes('dashboard')) return 'OFFICER_DASHBOARD';
-    if (hash.includes('verify-phone')) return 'VERIFY_PHONE';
     return 'REPORT_FORM';
   });
   const [verifiedUser, setVerifiedUser] = useState<UserProfile | null>(null);
@@ -79,8 +77,6 @@ export function App() {
       const hash = window.location.hash.toLowerCase();
       if (hash.includes('dashboard')) {
         setCurrentView('OFFICER_DASHBOARD');
-      } else if (hash.includes('verify-phone')) {
-        setCurrentView('VERIFY_PHONE');
       } else {
         setCurrentView('REPORT_FORM');
       }
@@ -91,18 +87,6 @@ export function App() {
   }, []);
 
   const unreadEmailCount = emails.filter(e => !e.isRead).length;
-
-  // Phone Verified Callback from Standalone Screen
-  const handlePhoneVerified = (user: UserProfile, isNew: boolean) => {
-    setVerifiedUser(user);
-    setCurrentView('REPORT_FORM');
-    window.location.hash = '#/report';
-    showToast(
-      isNew ? 'ยืนยันเบอร์โทรศัพท์สำเร็จ' : `ยืนยันเบอร์โทรศัพท์สำเร็จ (${user.name})`,
-      'เข้าสู่หน้ากรอกแบบฟอร์มแจ้งปัญหาการใช้งานเรียบร้อยแล้ว',
-      'success'
-    );
-  };
 
   // Flow Step 1: กทม แจ้งในระบบ -> auto email to Forth
   const handleCreateTicket = (data: Parameters<typeof TicketService.createTicket>[0]) => {
@@ -207,19 +191,7 @@ export function App() {
         </div>
       )}
 
-      {/* VIEW 1: Phone Verification Entry Step */}
-      {currentView === 'VERIFY_PHONE' && (
-        <PhoneVerificationScreen
-          onVerified={handlePhoneVerified}
-          onNavigateStatusCheck={() => setIsStatusCheckOpen(true)}
-          onNavigateStaff={() => {
-            setCurrentView('OFFICER_DASHBOARD');
-            window.location.hash = '#/dashboard';
-          }}
-        />
-      )}
-
-      {/* VIEW 2: Complete Issue Reporting Page (หน้าแจ้งปัญหาการใช้งาน) */}
+      {/* Primary Issue Reporting Page (หน้าแจ้งปัญหาการใช้งาน) */}
       {currentView === 'REPORT_FORM' && (
         <PublicReportPage
           initialUser={verifiedUser}
@@ -230,6 +202,12 @@ export function App() {
           }}
           onTicketCreated={(ticket) => {
             refreshData();
+            setVerifiedUser({
+              phone: ticket.reportedBy.phone,
+              name: ticket.reportedBy.name,
+              department: ticket.reportedBy.department,
+              email: ticket.reportedBy.email,
+            });
             showToast(
               `ส่งเรื่องแจ้งซ่อมสำเร็จ (${ticket.id})`,
               'ระบบส่งข้อมูลไปยังศูนย์ควบคุมและ Forth เรียบร้อยแล้ว'
@@ -276,12 +254,8 @@ export function App() {
               onSelectStatusFilter={(status) => setActiveStatusFilter(status)}
               onOpenReportExport={() => setIsReportExportOpen(true)}
               onOpenNewTicket={() => {
-                if (!verifiedUser) {
-                  setCurrentView('VERIFY_PHONE');
-                  window.location.hash = '#/verify-phone';
-                } else {
-                  setIsNewTicketOpen(true);
-                }
+                setCurrentView('REPORT_FORM');
+                window.location.hash = '#/report';
               }}
             />
 
@@ -314,12 +288,8 @@ export function App() {
               onOpenSendReport={(ticket) => setSelectedTicketForSendReport(ticket)}
               onOpenServiceReport={(ticket) => setSelectedTicketForServiceReport(ticket)}
               onOpenNewTicket={() => {
-                if (!verifiedUser) {
-                  setCurrentView('VERIFY_PHONE');
-                  window.location.hash = '#/verify-phone';
-                } else {
-                  setIsNewTicketOpen(true);
-                }
+                setCurrentView('REPORT_FORM');
+                window.location.hash = '#/report';
               }}
             />
           </main>

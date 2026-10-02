@@ -80,5 +80,5 @@ npm run build
 
 ## หมายเหตุและข้อมูลเวอร์ชัน (Version Management)
 
-- **Authoritative Version Source**: `src/version.ts` (v1.2.0)
+- **Authoritative Version Source**: `src/version.ts` (v1.2.1)
 - **UI Policy**: ใช้ Scalable SVG Icons (Lucide Icons และ Garuda Emblem SVG) โดยไม่มี Unicode Emoji ในเนื้อหา UI ตามมาตรฐานสากล
